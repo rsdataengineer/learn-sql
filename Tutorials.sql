@@ -440,5 +440,266 @@ call ecom.first_procedure(2, 'Airpods', 'airpods@apple.com');
 
 select * from pro;
 
+Explain OrderBy clause in SQL.
+The ORDER BY clause in SQL is used to sort the result set of a query by one or more columns. It allows you to specify the order in which the rows should be returned, either in ascending (ASC) or descending (DESC) order. By default, if no order is specified, the sorting is done in ascending order.
+Here is the basic syntax of the ORDER BY clause:
+```sql
+SELECT column1, column2, ...
+FROM table_name
+ORDER BY column1 [ASC|DESC], column2 [ASC|DESC], ...;
+```
 
--- FUNCTIONS in MySQL - These are routines in MySQL which accepts input values and perform some operation and return a single value. They are similar to functions in programming languages. They return a value and cannot modify data.
+Difference between where and having clause in SQL.
+The WHERE clause and HAVING clause in SQL are both used to filter records, but they are used in different contexts and serve different purposes.
+1. WHERE Clause:
+- The WHERE clause is used to filter rows before any groupings are made. It is applied to individual rows in a table.
+- It cannot be used with aggregate functions (like COUNT, SUM, AVG, etc.)
+Example:
+```sql
+SELECT * FROM Employees
+WHERE Salary > 50000; 
+```
+2. HAVING Clause:
+- The HAVING clause is used to filter groups after the GROUP BY clause has been applied. It is used with aggregate functions.
+- It allows you to filter the results of a GROUP BY query based on aggregate values.
+Example:
+```sql
+SELECT Department, COUNT(*) AS EmployeeCount
+FROM Employees
+GROUP BY Department
+HAVING COUNT(*) > 5;
+```
+In summary, use the WHERE clause to filter individual rows before grouping, and use the HAVING clause to filter groups after aggregation.
+
+What is stored procedure in SQL?
+A stored procedure in SQL is a precompiled collection of one or more SQL statements that are stored in the database and can be executed as a single unit. Stored procedures are used to encapsulate logic, improve performance, and promote code reuse. They can accept input parameters, return output parameters, and perform complex operations such as data manipulation, transaction control, and error handling.
+Stored procedures are created using the CREATE PROCEDURE statement and can be executed using the EXEC or CALL command, depending on the database system. Here is a simple example of a stored procedure:
+```sql
+    CREATE PROCEDURE GetEmployeeByID
+    @EmployeeID INT
+AS
+BEGIN
+    SELECT * FROM Employees
+    WHERE EmployeeID = @EmployeeID;
+END;   
+To execute the stored procedure, you would use:
+```sql
+EXEC GetEmployeeByID @EmployeeID = 1;
+Stored procedures offer several benefits, including improved performance due to precompilation, reduced network traffic by executing multiple SQL statements in a single call, and enhanced security by controlling access to the underlying data.
+
+What is trigger in SQL?
+A trigger in SQL is a special type of stored procedure that automatically executes or "fires" in response to certain events on a particular table or view. Triggers are used to enforce business rules, maintain data integrity, and perform auditing tasks. They can be set to activate before or after data modification operations such as INSERT, UPDATE, or DELETE.
+Here is the basic syntax for creating a trigger:
+```sql
+CREATE TRIGGER trigger_name
+ON table_name
+AFTER|BEFORE INSERT|UPDATE|DELETE
+AS
+BEGIN
+    -- SQL statements to be executed when the trigger fires
+END;
+```
+For example, the following trigger automatically logs changes made to the Employees table:
+```sql
+CREATE TRIGGER LogEmployeeChanges
+ON Employees
+AFTER UPDATE
+AS
+BEGIN
+    INSERT INTO EmployeeAudit (EmployeeID, OldSalary, NewSalary, ChangeDate)
+    SELECT d.EmployeeID, d.Salary, i.Salary, GETDATE()
+    FROM deleted d
+    JOIN inserted i ON d.EmployeeID = i.EmployeeID;
+END;
+```
+In this example, the trigger "LogEmployeeChanges" fires after an UPDATE operation on the Employees table and logs the old and new salary values into the EmployeeAudit table.
+Triggers are powerful tools for automating database tasks, but they should be used judiciously, as they can add complexity to database operations and may impact performance if not designed carefully.
+
+What is a selfjoin and how would you use it?
+A self-join is a type of join in SQL where a table is joined with itself. This is useful when you need to compare rows within the same table or when you want to retrieve related data from the same table. To perform a self-join, you typically use table aliases to differentiate between the two instances of the table.
+Here is an example of how to use a self-join:
+```sql
+SELECT e1.EmployeeID AS EmployeeID, e1.Name AS EmployeeName, e2.Name AS ManagerName
+FROM Employees e1
+JOIN Employees e2 ON e1.ManagerID = e2.EmployeeID;
+```
+In this example, the Employees table is joined with itself to retrieve a list of employees along with their respective managers. The table alias "e1" represents the employees, while "e2" represents the managers. The join condition matches the ManagerID of the employee with the EmployeeID of the manager.
+Self-joins are particularly useful in hierarchical data structures, such as organizational charts or category trees, where you need to establish relationships between records within the same table.
+
+What is subquery in SQL? Provide an example.
+A subquery in SQL is a query nested inside another query. It is used to retrieve data that will be used in the main query as a condition or to provide a value. Subqueries can be placed in various parts of a SQL statement, such as the SELECT, FROM, WHERE, or HAVING clauses.
+Here is an example of a subquery used in the WHERE clause:
+```sql
+SELECT EmployeeID, Name, Salary
+FROM Employees
+WHERE Salary > (SELECT AVG(Salary) FROM Employees);
+```
+In this example, the subquery `(SELECT AVG(Salary) FROM Employees)` calculates the average salary of all employees. The main query then retrieves the EmployeeID, Name, and Salary of employees whose salary is greater than this average salary.
+Subqueries can also be used in the FROM clause, as shown below:
+```sql
+SELECT Dept.DepartmentName, Emp.EmployeeCount
+FROM Departments Dept
+JOIN (SELECT DepartmentID, COUNT(*) AS EmployeeCount
+      FROM Employees
+      GROUP BY DepartmentID) Emp
+ON Dept.DepartmentID = Emp.DepartmentID;
+In this example, the subquery counts the number of employees in each department, and the main query joins this result with the Departments table to retrieve the department names along with their respective employee counts.
+Subqueries are powerful tools that allow for more complex queries and can help break down problems into smaller, manageable parts.
+```
+
+What is transaction in SQL?
+A transaction in SQL is a sequence of one or more SQL operations that are treated as a single unit of work. Transactions are used to ensure data integrity and consistency in a database. They follow the ACID properties, which stand for Atomicity, Consistency, Isolation, and Durability.
+1. Atomicity: Ensures that all operations within a transaction are completed successfully. If any operation fails, the entire transaction is rolled back, and no changes are made to the database.
+2. Consistency: Ensures that a transaction brings the database from one valid state to another valid state, maintaining all defined rules and constraints.
+3. Isolation: Ensures that the operations of one transaction are isolated from those of other transactions, preventing concurrent transactions from interfering with each other.
+4. Durability: Ensures that once a transaction is committed, the changes made are permanent and will survive any subsequent system failures.
+Here is an example of how to use transactions in SQL:
+```sql
+BEGIN TRANSACTION;
+    UPDATE Accounts
+    SET Balance = Balance - 100
+    WHERE AccountID = 1;
+    UPDATE Accounts
+    SET Balance = Balance + 100
+    WHERE AccountID = 2;
+COMMIT TRANSACTION;
+```
+In this example, two updates are made to the Accounts table as part of a single transaction. If both updates are successful, the transaction is committed, and the changes are saved. If either update fails, the transaction can be rolled back to maintain data integrity.
+```sql
+ROLLBACK TRANSACTION;
+```
+In this case, if an error occurs during either of the update operations, the ROLLBACK command can be executed to undo all changes made during the transaction, ensuring that the database remains in a consistent state.
+Transactions are essential for maintaining the reliability and integrity of data in multi-user database environments.
+
+What are ACID properties in SQL?
+ACID properties in SQL refer to a set of four key principles that ensure reliable processing of database transactions. ACID stands for Atomicity, Consistency, Isolation, and Durability. These properties are essential for maintaining data integrity and ensuring that database transactions are processed correctly, even in the presence of errors, power failures, or other issues.
+1. Atomicity: This property ensures that a transaction is treated as a single, indivisible unit of work. Either all operations within the transaction are completed successfully, or none of them are applied. If any part of the transaction fails, the entire transaction is rolled back to its previous state.
+2. Consistency: This property ensures that a transaction brings the database from one valid state to another valid state. It guarantees that any data written to the database must adhere to all defined rules, constraints, and triggers, maintaining the integrity of the database.
+3. Isolation: This property ensures that the operations of one transaction are isolated from those of other concurrent transactions. This means that the intermediate state of a transaction is not visible to other transactions until the transaction is committed. Isolation levels can be adjusted to balance performance and consistency.
+4. Durability: This property ensures that once a transaction has been committed, the changes made are permanent and will survive any subsequent system failures, such as power outages or crashes. The changes are typically written to non-volatile storage to ensure their persistence.
+Together, these ACID properties provide a framework for reliable transaction processing in relational database management systems,ensuring that data remains accurate, consistent, and secure even in complex multi-user environments.
+
+How do you implement error handling in SQL?
+Error handling in SQL can be implemented using various techniques depending on the database management system (DBMS) being used. Common methods include using TRY...CATCH blocks, error codes, and transaction control statements. Below are examples of how to implement error handling in SQL Server and PL/SQL (Oracle).
+1. SQL Server (T-SQL) using TRY...CATCH:
+```sql
+BEGIN TRY
+    BEGIN TRANSACTION;
+    
+    -- Your SQL statements here
+    UPDATE Accounts
+    SET Balance = Balance - 100
+    WHERE AccountID = 1;
+
+    UPDATE Accounts
+    SET Balance = Balance + 100
+    WHERE AccountID = 2;
+
+    COMMIT TRANSACTION;
+END TRY
+BEGIN CATCH
+    ROLLBACK TRANSACTION;
+
+    -- Capture error information
+    DECLARE @ErrorMessage NVARCHAR(4000);
+    DECLARE @ErrorSeverity INT;
+    DECLARE @ErrorState INT;
+
+    SELECT 
+        @ErrorMessage = ERROR_MESSAGE(),
+        @ErrorSeverity = ERROR_SEVERITY(),
+        @ErrorState = ERROR_STATE();
+
+    -- Raise the error
+    RAISERROR (@ErrorMessage, @ErrorSeverity, @ErrorState);
+END CATCH;
+```
+In this example, if any error occurs during the transaction, the CATCH block rolls back the transaction and captures the error details, which can then be raised or logged.
+2. PL/SQL (Oracle) using EXCEPTION block:
+```sqlBEGIN
+    -- Your SQL statements here
+    UPDATE Accounts
+    SET Balance = Balance - 100
+    WHERE AccountID = 1;
+
+    UPDATE Accounts
+    SET Balance = Balance + 100
+    WHERE AccountID = 2;
+
+    COMMIT;
+EXCEPTION
+    WHEN OTHERS THEN
+        ROLLBACK;
+
+        -- Capture error information
+        DECLARE
+            v_error_message VARCHAR2(4000);
+        BEGIN
+            v_error_message := SQLERRM;
+            -- Log or raise the error message
+            RAISE_APPLICATION_ERROR(-20001, v_error_message);
+        END;
+END;
+```
+In this PL/SQL example, if an error occurs, the EXCEPTION block rolls back the transaction and captures the error message, which can then be logged or raised.
+These techniques help ensure that errors are properly managed, and the database remains in a consistent state even when unexpected issues arise during SQL operations.
+
+What is normalization in SQL? Explain different normal forms.
+Normalization in SQL is the process of organizing the data in a database to reduce redundancy and improve data integrity. The goal of normalization is to divide large tables into smaller, related tables and define relationships between them. This helps to minimize data duplication and ensures that data is stored efficiently.
+There are several normal forms, each with specific rules that must be followed to achieve a certain level of normalization. The most commonly used normal forms are:
+1. First Normal Form (1NF):
+- A table is in 1NF if it contains only atomic (indivisible) values and each column contains unique values. There should be no repeating groups or arrays.
+Example:
+| StudentID | Course1 | Course2 |
+|-----------|---------|---------|
+| 1         | Math    | Science |
+To convert to 1NF:
+| StudentID | Course  |
+|-----------|---------|
+| 1         | Math    |
+| 1         | Science |
+2. Second Normal Form (2NF):
+- A table is in 2NF if it is in 1NF and all non-key attributes are fully functionally dependent on the primary key. This means that there should be no partial dependency on a composite key.
+Example:
+| StudentID | Course  | Instructor |
+|-----------|---------|------------|
+To convert to 2NF:
+| StudentID | Course  |
+|-----------|---------|
+| 1         | Math    |
+| 1         | Science |
+| Course    | Instructor |
+|-----------|------------|
+| Math      | Mr. A     |
+| Science   | Ms. B     |
+3. Third Normal Form (3NF):
+- A table is in 3NF if it is in 2NF and all the attributes are functionally dependent only on the primary key. There should be no transitive dependency.
+Example:
+| StudentID | Course  | Instructor | InstructorPhone |
+|-----------|---------|------------|------------------|
+To convert to 3NF:
+| StudentID | Course  |
+|-----------|---------|
+| 1         | Math    |
+| 1         | Science |
+| Course    | Instructor |
+|-----------|------------|
+| Math      | Mr. A     |
+| Science   | Ms. B     |
+| Instructor | InstructorPhone |
+|------------|------------------|
+| Mr. A      | 123-456-7890     |
+| Ms. B      | 987-654-3210     |
+4. Boyce-Codd Normal Form (BCNF):
+- A table is in BCNF if it is in 3NF and for every functional dependency, the left-hand side is a superkey. This is a stricter version of 3NF.
+Normalization helps to ensure that the database is efficient, reduces data anomalies, and maintains data integrity by organizing the data into well-structured tables.
+
+What is denormalization in SQL?
+Denormalization in SQL is the process of intentionally introducing redundancy into a database by combining tables or adding duplicate data to improve read performance. While normalization focuses on reducing data redundancy and ensuring data integrity, denormalization aims to optimize query performance, especially in read-heavy applications where complex joins can slow down data retrieval.
+Denormalization is typically used in scenarios where the performance of read operations is more critical than the efficiency of write operations. By reducing the number of joins required to retrieve data, denormalization can lead to faster query response times.
+Here are some common techniques used in denormalization:
+1. Combining Tables: Merging two or more related tables into a single table to eliminate the need for joins.
+2. Adding Redundant Columns: Including additional columns in a table that duplicate data from related tables to speed up data access.
+3. Precomputing Aggregates: Storing pre-calculated summary data (e.g., totals, averages) in a table to avoid recalculating them during queries.
+4. Using Materialized Views: Creating materialized views that store the results of complex queries for faster access.
+While denormalization can improve read performance, it also has some drawbacks, such as increased storage requirements, potential data inconsistencies, and more complex data maintenance. Therefore, it is essential to carefully evaluate the trade-offs before implementing denormalization in a database design.
